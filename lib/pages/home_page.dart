@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:lottie/lottie.dart';
 import 'package:story_narrator/bloc/chat_bloc.dart';
 import 'package:story_narrator/models/message_model.dart';
 
@@ -35,6 +37,7 @@ class _HomePageState extends State<HomePage> {
                   ),
                 ),
                 child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
                       padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -43,20 +46,18 @@ class _HomePageState extends State<HomePage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
-                          const Text(
+                          Text(
                             'Story Narrator',
-                            style: TextStyle(
-                                fontSize: 24,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.white),
-                          ),
-                          IconButton(
-                            onPressed: () {},
-                            icon: const Icon(
-                              Icons.image_search,
-                              color: Colors.white,
+                            style: GoogleFonts.roboto(
+                              fontSize: 24,
+                              fontWeight: FontWeight.w900,
+                              color: const Color(0xFFfcf5eb),
                             ),
                           ),
+                          SizedBox(
+                              height: 50,
+                              width: 50,
+                              child: Lottie.asset("assets/title.json"))
                         ],
                       ),
                     ),
@@ -65,10 +66,11 @@ class _HomePageState extends State<HomePage> {
                           itemCount: messages.length,
                           itemBuilder: (context, index) {
                             return Container(
-                                margin: const EdgeInsets.only(top: 5),
+                                margin: const EdgeInsets.only(
+                                    top: 10, left: 10, right: 10),
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(16),
+                                    borderRadius: BorderRadius.circular(20),
                                     color: Colors.purple.withOpacity(0.5)),
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -77,22 +79,42 @@ class _HomePageState extends State<HomePage> {
                                       messages[index].role == "user"
                                           ? "You"
                                           : "My Narrator",
-                                      style: TextStyle(
-                                          fontSize: 12,
-                                          color: messages[index].role == 'user'
-                                              ? Colors.yellowAccent
-                                              : Colors.green),
+                                      style: GoogleFonts.roboto(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14,
+                                        color: messages[index].role == 'user'
+                                            ? Colors.yellowAccent
+                                            : Colors.green,
+                                      ),
                                     ),
                                     // user given prompts and AI answer
                                     Text(
                                       messages[index].parts.first.text,
-                                      style: const TextStyle(
-                                          color: Colors.white, fontSize: 14),
+                                      style: GoogleFonts.roboto(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
                                     ),
                                   ],
                                 ));
                           }),
                     ),
+                    if (chatBloc.generating)
+                      Row(
+                        children: [
+                          SizedBox(
+                              height: 100,
+                              width: 100,
+                              child: Lottie.asset("assets/loader.json")),
+                          const SizedBox(
+                            width: 20,
+                            child: Text(
+                              'Writing..',
+                              style: TextStyle(color: Colors.white),
+                            ),
+                          )
+                        ],
+                      ),
                     Container(
                       padding: const EdgeInsets.all(16),
                       child: Row(
@@ -100,7 +122,7 @@ class _HomePageState extends State<HomePage> {
                           Expanded(
                             child: TextField(
                               controller: textEditingController,
-                              style: const TextStyle(color: Colors.black),
+                              style: GoogleFonts.roboto(color: Colors.black),
                               cursorColor: Theme.of(context).primaryColor,
                               decoration: InputDecoration(
                                 fillColor: const Color(0xFFfde6d7),
@@ -110,6 +132,7 @@ class _HomePageState extends State<HomePage> {
                                 ),
                                 focusColor: Theme.of(context).primaryColor,
                                 hintText: 'Write a story prompt',
+                                hintStyle: GoogleFonts.roboto(),
                               ),
                             ),
                           ),
