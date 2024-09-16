@@ -14,14 +14,30 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   final ChatBloc chatBloc = ChatBloc();
-  TextEditingController textEditingController = TextEditingController();
+  final TextEditingController textEditingController = TextEditingController();
+  final ScrollController _scrollController = ScrollController();
+
+  void _scrollToBottom() {
+    if (_scrollController.hasClients) {
+      _scrollController.animateTo(
+        _scrollController.position.maxScrollExtent,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: BlocConsumer<ChatBloc, ChatState>(
         bloc: chatBloc,
-        listener: (context, state) {},
+        listener: (context, state) {
+          if (state is ChatSuccessState) {
+            // Scroll to the bottom when a new message is added
+            _scrollToBottom();
+          }
+        },
         builder: (context, state) {
           switch (state.runtimeType) {
             case ChatSuccessState:
@@ -63,41 +79,45 @@ class _HomePageState extends State<HomePage> {
                     ),
                     Expanded(
                       child: ListView.builder(
-                          itemCount: messages.length,
-                          itemBuilder: (context, index) {
-                            return Container(
-                                margin: const EdgeInsets.only(
-                                    top: 10, left: 10, right: 10),
-                                padding: const EdgeInsets.all(16),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(20),
-                                    color: Colors.purple.withOpacity(0.5)),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(
-                                      messages[index].role == "user"
-                                          ? "You"
-                                          : "My Narrator",
-                                      style: GoogleFonts.roboto(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 14,
-                                        color: messages[index].role == 'user'
-                                            ? Colors.yellowAccent
-                                            : Colors.green,
-                                      ),
-                                    ),
-                                    // user given prompts and AI answer
-                                    Text(
-                                      messages[index].parts.first.text,
-                                      style: GoogleFonts.roboto(
-                                        color: Colors.white,
-                                        fontSize: 14,
-                                      ),
-                                    ),
-                                  ],
-                                ));
-                          }),
+                        controller: _scrollController,
+                        itemCount: messages.length,
+                        itemBuilder: (context, index) {
+                          return Container(
+                            margin: const EdgeInsets.only(
+                                top: 10, left: 10, right: 10),
+                            padding: const EdgeInsets.all(16),
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(20),
+                              color: Colors.purple.withOpacity(0.55),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  messages[index].role == "user"
+                                      ? "You"
+                                      : "My Narrator",
+                                  style: GoogleFonts.roboto(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 16,
+                                    color: messages[index].role == 'user'
+                                        ? Colors.yellowAccent
+                                        : Colors.green,
+                                  ),
+                                ),
+                                const SizedBox(height: 3),
+                                Text(
+                                  messages[index].parts.first.text,
+                                  style: GoogleFonts.roboto(
+                                    color: Colors.white,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      ),
                     ),
                     if (chatBloc.generating)
                       Row(
@@ -108,10 +128,6 @@ class _HomePageState extends State<HomePage> {
                               child: Lottie.asset("assets/loader.json")),
                           const SizedBox(
                             width: 20,
-                            child: Text(
-                              'Writing..',
-                              style: TextStyle(color: Colors.white),
-                            ),
                           )
                         ],
                       ),
@@ -125,6 +141,7 @@ class _HomePageState extends State<HomePage> {
                               style: GoogleFonts.roboto(color: Colors.black),
                               cursorColor: Theme.of(context).primaryColor,
                               decoration: InputDecoration(
+                                contentPadding: const EdgeInsets.only(left: 20),
                                 fillColor: const Color(0xFFfde6d7),
                                 filled: true,
                                 border: OutlineInputBorder(
@@ -141,7 +158,9 @@ class _HomePageState extends State<HomePage> {
                             onTap: () {
                               if (textEditingController.text.isNotEmpty) {
                                 String text = textEditingController.text;
+                                // clear controller and close keyboard
                                 textEditingController.clear();
+                                FocusScope.of(context).unfocus();
                                 chatBloc.add(
                                   ChatGenerateNewTextMessageEvent(
                                       inputMessage: text),
@@ -169,7 +188,7 @@ class _HomePageState extends State<HomePage> {
               );
 
             default:
-              return SizedBox();
+              return const SizedBox();
           }
         },
       ),
