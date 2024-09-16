@@ -61,7 +61,21 @@ class _HomePageState extends State<HomePage> {
                       ),
                     ),
                     Expanded(
-                      child: ListView(),
+                      child: ListView.builder(
+                          itemCount: messages.length,
+                          itemBuilder: (context, index) {
+                            return Container(
+                                margin: EdgeInsets.only(top: 5),
+                                padding: const EdgeInsets.all(16),
+                                decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(16),
+                                    color: Colors.grey.withOpacity(0.9)),
+                                child: Text(
+                                  messages[index].parts.first.text,
+                                  style: const TextStyle(
+                                      color: Colors.white, fontSize: 14),
+                                ));
+                          }),
                     ),
                     Container(
                       padding: const EdgeInsets.all(16),
@@ -69,6 +83,7 @@ class _HomePageState extends State<HomePage> {
                         children: [
                           Expanded(
                             child: TextField(
+                              controller: textEditingController,
                               style: const TextStyle(color: Colors.black),
                               cursorColor: Theme.of(context).primaryColor,
                               decoration: InputDecoration(
@@ -82,15 +97,25 @@ class _HomePageState extends State<HomePage> {
                             ),
                           ),
                           const SizedBox(width: 15),
-                          const CircleAvatar(
-                            radius: 28,
-                            backgroundColor: Colors.brown,
-                            child: CircleAvatar(
-                              radius: 26,
-                              backgroundColor: Color(0xFFfde6d7),
-                              child: Icon(
-                                Icons.send,
-                                color: Colors.brown,
+                          InkWell(
+                            onTap: () {
+                              if (textEditingController.text.isNotEmpty) {
+                                String text = textEditingController.text;
+                                textEditingController.clear();
+                                chatBloc.add(ChatGenerateNewTextMessageEvent(
+                                    inputMessage: text));
+                              }
+                            },
+                            child: const CircleAvatar(
+                              radius: 28,
+                              backgroundColor: Colors.brown,
+                              child: CircleAvatar(
+                                radius: 26,
+                                backgroundColor: Color(0xFFfde6d7),
+                                child: Icon(
+                                  Icons.send,
+                                  color: Colors.brown,
+                                ),
                               ),
                             ),
                           ),
