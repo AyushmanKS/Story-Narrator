@@ -65,15 +65,31 @@ class _HomePageState extends State<HomePage> {
                           itemCount: messages.length,
                           itemBuilder: (context, index) {
                             return Container(
-                                margin: EdgeInsets.only(top: 5),
+                                margin: const EdgeInsets.only(top: 5),
                                 padding: const EdgeInsets.all(16),
                                 decoration: BoxDecoration(
                                     borderRadius: BorderRadius.circular(16),
-                                    color: Colors.grey.withOpacity(0.9)),
-                                child: Text(
-                                  messages[index].parts.first.text,
-                                  style: const TextStyle(
-                                      color: Colors.white, fontSize: 14),
+                                    color: Colors.purple.withOpacity(0.5)),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      messages[index].role == "user"
+                                          ? "You"
+                                          : "My Narrator",
+                                      style: TextStyle(
+                                          fontSize: 12,
+                                          color: messages[index].role == 'user'
+                                              ? Colors.yellowAccent
+                                              : Colors.green),
+                                    ),
+                                    // user given prompts and AI answer
+                                    Text(
+                                      messages[index].parts.first.text,
+                                      style: const TextStyle(
+                                          color: Colors.white, fontSize: 14),
+                                    ),
+                                  ],
                                 ));
                           }),
                     ),
@@ -93,6 +109,7 @@ class _HomePageState extends State<HomePage> {
                                   borderRadius: BorderRadius.circular(100),
                                 ),
                                 focusColor: Theme.of(context).primaryColor,
+                                hintText: 'Write a story prompt',
                               ),
                             ),
                           ),
@@ -102,8 +119,10 @@ class _HomePageState extends State<HomePage> {
                               if (textEditingController.text.isNotEmpty) {
                                 String text = textEditingController.text;
                                 textEditingController.clear();
-                                chatBloc.add(ChatGenerateNewTextMessageEvent(
-                                    inputMessage: text));
+                                chatBloc.add(
+                                  ChatGenerateNewTextMessageEvent(
+                                      inputMessage: text),
+                                );
                               }
                             },
                             child: const CircleAvatar(
