@@ -9,5 +9,4 @@ This Flutter app generates stories based on user-provided prompts and narrates t
 
 1) Clone the repository
 2) Go to google AI for Developers https://ai.google.dev/ and get your Api Key
-3) Then navigate to lib/consts.dart file and past your Api key
-
+3) Navigate to lib/consts.dart file and past your Api key
