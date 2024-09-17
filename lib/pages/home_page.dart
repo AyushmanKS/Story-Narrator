@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:lottie/lottie.dart';
 import 'package:story_narrator/bloc/chat_bloc.dart';
 import 'package:story_narrator/models/message_model.dart';
+import 'package:flutter_tts/flutter_tts.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -16,6 +17,16 @@ class _HomePageState extends State<HomePage> {
   final ChatBloc chatBloc = ChatBloc();
   final TextEditingController textEditingController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  late FlutterTts flutterTts;
+  bool isMicOn = true;
+
+  @override
+  void initState() {
+    super.initState();
+    flutterTts = FlutterTts();
+    flutterTts
+        .awaitSpeakCompletion(true); // Ensures narration waits for completion
+  }
 
   void _scrollToBottom() {
     if (_scrollController.hasClients) {
@@ -27,6 +38,23 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  Future<void> _speak(String text) async {
+    setState(() {
+      isMicOn = false; // Change icon to mic_off when speaking starts
+    });
+    await flutterTts.setVolume(1.0);
+    await flutterTts.setPitch(1.0);
+    await flutterTts.setSpeechRate(0.5);
+    await flutterTts.speak(text);
+  }
+
+  Future<void> _stop() async {
+    setState(() {
+      isMicOn = true; // Change icon back to mic when speaking stops
+    });
+    await flutterTts.stop();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -34,7 +62,6 @@ class _HomePageState extends State<HomePage> {
         bloc: chatBloc,
         listener: (context, state) {
           if (state is ChatSuccessState) {
-            // Scroll to the bottom when a new message is added
             _scrollToBottom();
           }
         },
@@ -93,25 +120,54 @@ class _HomePageState extends State<HomePage> {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  messages[index].role == "user"
-                                      ? "You"
-                                      : "My Narrator",
-                                  style: GoogleFonts.roboto(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: messages[index].role == 'user'
-                                        ? Colors.yellowAccent
-                                        : Colors.green,
-                                  ),
+                                Row(
+                                  children: [
+                                    Text(
+                                      messages[index].role == "user"
+                                          ? "You"
+                                          : "My Narrator",
+                                      style: GoogleFonts.roboto(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                        color: messages[index].role == 'user'
+                                            ? Colors.yellowAccent
+                                            : Colors.green,
+                                      ),
+                                    ),
+                                    const Spacer(),
+                                    IconButton(
+                                      icon: Icon(
+                                        isMicOn ? Icons.mic : Icons.mic_off,
+                                        color:
+                                            isMicOn ? Colors.white : Colors.red,
+                                        size: 28,
+                                      ),
+                                      onPressed: () {
+                                        if (isMicOn) {
+                                          _speak(
+                                              messages[index].parts.first.text);
+                                        } else {
+                                          _stop();
+                                        }
+                                      },
+                                    )
+                                  ],
                                 ),
                                 const SizedBox(height: 3),
-                                Text(
-                                  messages[index].parts.first.text,
-                                  style: GoogleFonts.roboto(
-                                    color: Colors.white,
-                                    fontSize: 15,
-                                  ),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        messages[index].parts.first.text,
+                                        style: GoogleFonts.roboto(
+                                          color: Colors.white,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -158,7 +214,6 @@ class _HomePageState extends State<HomePage> {
                             onTap: () {
                               if (textEditingController.text.isNotEmpty) {
                                 String text = textEditingController.text;
-                                // clear controller and close keyboard
                                 textEditingController.clear();
                                 FocusScope.of(context).unfocus();
                                 chatBloc.add(
@@ -186,12 +241,17 @@ class _HomePageState extends State<HomePage> {
                   ],
                 ),
               );
-
             default:
               return const SizedBox();
           }
         },
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    flutterTts.stop();
+    super.dispose();
   }
 }
